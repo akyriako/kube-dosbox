@@ -1,0 +1,27 @@
+# permissions for end users to view games.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: game-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kube-dosbox
+    app.kubernetes.io/part-of: kube-dosbox
+    app.kubernetes.io/managed-by: kustomize
+  name: game-viewer-role
+rules:
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games/status
+  verbs:
+  - get

@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -1,0 +1,13 @@
+apiVersion: operator.contrib.dosbox.com/v1alpha1
+kind: Game
+metadata:
+  labels:
+    app.kubernetes.io/name: game
+    app.kubernetes.io/instance: game-sample
+    app.kubernetes.io/part-of: kube-dosbox
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kube-dosbox
+  name: game-sample
+spec:
+  url: "http://www.docboxes.com/pop.zip"
+

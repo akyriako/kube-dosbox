@@ -1,0 +1,31 @@
+# permissions for end users to edit games.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: game-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kube-dosbox
+    app.kubernetes.io/part-of: kube-dosbox
+    app.kubernetes.io/managed-by: kustomize
+  name: game-editor-role
+rules:
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.contrib.dosbox.com
+  resources:
+  - games/status
+  verbs:
+  - get

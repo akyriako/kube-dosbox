@@ -10,4 +10,14 @@ plugins:
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: kube-dosbox
 repo: github.com/akyriako/kube-dosbox
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: contrib.dosbox.com
+  group: operator
+  kind: Game
+  path: github.com/akyriako/kube-dosbox/api/v1alpha1
+  version: v1alpha1
 version: "3"
