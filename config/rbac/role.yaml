@@ -18,6 +18,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - ""
+  resources:
+  - pvc
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - operator.contrib.dosbox.com
   resources:
   - games

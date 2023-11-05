@@ -19,7 +19,7 @@ spec:
     - jsonPath: .spec.gameName
       name: Game
       type: string
-    - jsonPath: .spec.Url
+    - jsonPath: .spec.url
       name: Url
       type: string
     - jsonPath: .status.ready

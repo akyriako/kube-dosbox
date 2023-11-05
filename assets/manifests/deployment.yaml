@@ -21,7 +21,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{.Name}}-pvc
       containers:
-        - name: {{.Name}}
+        - name: {{.Name}}-engine
           image: traefik/whoami
           imagePullPolicy: IfNotPresent
           ports:
