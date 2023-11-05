@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"github.com/akyriako/kube-dosbox/assets"
+	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -38,6 +40,7 @@ type GameReconciler struct {
 //+kubebuilder:rbac:groups=operator.contrib.dosbox.com,resources=games,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=operator.contrib.dosbox.com,resources=games/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=operator.contrib.dosbox.com,resources=games/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -51,8 +54,8 @@ type GameReconciler struct {
 func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithName("controller")
 
-	var game operatorv1alpha1.Game
-	if err := r.Get(ctx, req.NamespacedName, &game); err != nil {
+	game := &operatorv1alpha1.Game{}
+	if err := r.Get(ctx, req.NamespacedName, game); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
@@ -61,8 +64,44 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	// TODO(user): your logic here
+	var exists = true
+	deployment := &appsv1.Deployment{}
+	if err := r.Get(ctx, req.NamespacedName, deployment); err != nil {
+		if apierrors.IsNotFound(err) {
+			exists = false
+		} else {
+			logger.V(5).Error(err, "unable to fetch deployment")
+			return ctrl.Result{}, err
+		}
+	}
 
+	if (exists && game.Spec.ForceRedeploy) || !exists {
+		return r.create(ctx, game)
+	} else {
+		return r.update(ctx, game)
+	}
+}
+
+func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game) (ctrl.Result, error) {
+	deployment, err := assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err = ctrl.SetControllerReference(game, deployment, r.Scheme)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err = r.Create(ctx, deployment)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *GameReconciler) update(ctx context.Context, game *operatorv1alpha1.Game) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 

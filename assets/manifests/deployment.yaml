@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Name}}
+  namespace: {{.Namespace}}
+  labels:
+    app: {{.Name}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Name}}
+  template:
+    metadata:
+      name: {{.Name}}
+      labels:
+        app: {{.Name}}
+    spec:
+      containers:
+        - name: {{.Name}}
+          image: traefik/whoami
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{.Port}}
+      restartPolicy: Always
+      
