@@ -27,6 +27,10 @@ import (
 type GameSpec struct {
 
 	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Type=string
+	GameName string `json:"gameName"`
+
+	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Pattern:=`^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$`
 	Url string `json:"url"`
 
@@ -50,7 +54,8 @@ type GameStatus struct {
 //+kubebuilder:subresource:status
 
 // Game is the Schema for the games API
-// +kubebuilder:printcolumn:name="Game Url",type=string,JSONPath=`.spec.url`
+// +kubebuilder:printcolumn:name="Game",type=string,JSONPath=`.spec.gameName`
+// +kubebuilder:printcolumn:name="Url",type=string,JSONPath=`.spec.Url`
 // +kubebuilder:printcolumn:name="Ready",type=boolean,JSONPath=`.status.ready`
 type Game struct {
 	metav1.TypeMeta   `json:",inline"`

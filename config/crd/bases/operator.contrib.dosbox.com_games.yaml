@@ -16,8 +16,11 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.url
-      name: Game Url
+    - jsonPath: .spec.gameName
+      name: Game
+      type: string
+    - jsonPath: .spec.Url
+      name: Url
       type: string
     - jsonPath: .status.ready
       name: Ready
@@ -45,6 +48,8 @@ spec:
               forceRedeploy:
                 default: false
                 type: boolean
+              gameName:
+                type: string
               port:
                 default: 8080
                 type: integer
@@ -52,6 +57,7 @@ spec:
                 pattern: ^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$
                 type: string
             required:
+            - gameName
             - url
             type: object
           status:

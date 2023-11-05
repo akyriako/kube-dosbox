@@ -9,5 +9,6 @@ metadata:
     app.kubernetes.io/created-by: kube-dosbox
   name: game-sample
 spec:
+  gameName: "Prince of Persia"
   url: "http://www.docboxes.com/pop.zip"
 
