@@ -3,12 +3,12 @@ kind: Game
 metadata:
   labels:
     app.kubernetes.io/name: game
-    app.kubernetes.io/instance: game-sample
+    app.kubernetes.io/instance: prince-of-persia
     app.kubernetes.io/part-of: kube-dosbox
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: kube-dosbox
-  name: game-sample
+  name: prince-of-persia
 spec:
   gameName: "Prince of Persia"
-  url: "http://www.docboxes.com/pop.zip"
+  url: "https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos"
 

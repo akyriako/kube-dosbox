@@ -55,7 +55,6 @@ type GameStatus struct {
 
 // Game is the Schema for the games API
 // +kubebuilder:printcolumn:name="Game",type=string,JSONPath=`.spec.gameName`
-// +kubebuilder:printcolumn:name="Url",type=string,JSONPath=`.spec.url`
 // +kubebuilder:printcolumn:name="Ready",type=boolean,JSONPath=`.status.ready`
 type Game struct {
 	metav1.TypeMeta   `json:",inline"`

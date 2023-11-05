@@ -3,8 +3,10 @@ package assets
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -28,18 +30,42 @@ func init() {
 	}
 }
 
+func getTemplate(name string) (*template.Template, error) {
+	manifestBytes, err := manifests.ReadFile(fmt.Sprintf("manifests/%s.yaml", name))
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := template.New(name)
+	parse, err := tmp.Parse(string(manifestBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	return parse, nil
+}
+
+func getObject(name string, gv schema.GroupVersion, metadata any) (runtime.Object, error) {
+	parse, err := getTemplate(name)
+	if err != nil {
+		return nil, err
+	}
+
+	var buffer bytes.Buffer
+	err = parse.Execute(&buffer, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	object, err := runtime.Decode(
+		appsCodecs.UniversalDecoder(gv),
+		buffer.Bytes(),
+	)
+
+	return object, nil
+}
+
 func GetDeployment(namespace string, name string, port int) (*appsv1.Deployment, error) {
-	deploymentBytes, err := manifests.ReadFile("manifests/deployment.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	tmp := template.New("deployment")
-	parse, err := tmp.Parse(string(deploymentBytes))
-	if err != nil {
-		return nil, err
-	}
-
 	metadata := struct {
 		Namespace string
 		Name      string
@@ -50,35 +76,15 @@ func GetDeployment(namespace string, name string, port int) (*appsv1.Deployment,
 		Port:      port,
 	}
 
-	var deploymentParsedBytes bytes.Buffer
-	err = parse.Execute(&deploymentParsedBytes, metadata)
+	object, err := getObject("deployment", appsv1.SchemeGroupVersion, metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	deploymentObject, err := runtime.Decode(
-		appsCodecs.UniversalDecoder(appsv1.SchemeGroupVersion),
-		deploymentParsedBytes.Bytes(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return deploymentObject.(*appsv1.Deployment), nil
+	return object.(*appsv1.Deployment), nil
 }
 
 func GetPersistentVolumeClaim(namespace string, name string) (*corev1.PersistentVolumeClaim, error) {
-	pvcBytes, err := manifests.ReadFile("manifests/pvc.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	tmp := template.New("pvc")
-	parse, err := tmp.Parse(string(pvcBytes))
-	if err != nil {
-		return nil, err
-	}
-
 	metadata := struct {
 		Namespace string
 		Name      string
@@ -87,56 +93,10 @@ func GetPersistentVolumeClaim(namespace string, name string) (*corev1.Persistent
 		Name:      name,
 	}
 
-	var pvcParsedBytes bytes.Buffer
-	err = parse.Execute(&pvcParsedBytes, metadata)
+	object, err := getObject("pvc", corev1.SchemeGroupVersion, metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	pvcObject, err := runtime.Decode(
-		appsCodecs.UniversalDecoder(corev1.SchemeGroupVersion),
-		pvcParsedBytes.Bytes(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return pvcObject.(*corev1.PersistentVolumeClaim), nil
-}
-
-func GetPersistentVolume(namespace string, name string) (*corev1.PersistentVolume, error) {
-	pvBytes, err := manifests.ReadFile("manifests/pv.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	tmp := template.New("pv")
-	parse, err := tmp.Parse(string(pvBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	metadata := struct {
-		Namespace string
-		Name      string
-	}{
-		Namespace: namespace,
-		Name:      name,
-	}
-
-	var pvParsedBytes bytes.Buffer
-	err = parse.Execute(&pvParsedBytes, metadata)
-	if err != nil {
-		return nil, err
-	}
-
-	pvObject, err := runtime.Decode(
-		appsCodecs.UniversalDecoder(corev1.SchemeGroupVersion),
-		pvParsedBytes.Bytes(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return pvObject.(*corev1.PersistentVolume), nil
+	return object.(*corev1.PersistentVolumeClaim), nil
 }

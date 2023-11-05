@@ -29,5 +29,13 @@ spec:
           volumeMounts:
             - mountPath: "/app/data"
               name: {{.Name}}-storage
+      initContainers:
+        - name: {{.Name}}-init
+          image: busybox:1.28
+          imagePullPolicy: IfNotPresent
+          command: [ 'sh', '-c', 'wget -O game.jsdos -P /app/data --no-check-certificate https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos' ]
+          volumeMounts:
+            - mountPath: "/app/data"
+              name: {{.Name}}-storage
       restartPolicy: Always
       
