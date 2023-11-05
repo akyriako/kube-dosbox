@@ -16,11 +16,18 @@ spec:
       labels:
         app: {{.Name}}
     spec:
+      volumes:
+        - name: {{.Name}}-storage
+          persistentVolumeClaim:
+            claimName: {{.Name}}-pvc
       containers:
         - name: {{.Name}}
           image: traefik/whoami
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: {{.Port}}
+          volumeMounts:
+            - mountPath: "/app/data"
+              name: {{.Name}}-storage
       restartPolicy: Always
       

@@ -103,3 +103,40 @@ func GetPersistentVolumeClaim(namespace string, name string) (*corev1.Persistent
 
 	return pvcObject.(*corev1.PersistentVolumeClaim), nil
 }
+
+func GetPersistentVolume(namespace string, name string) (*corev1.PersistentVolume, error) {
+	pvBytes, err := manifests.ReadFile("manifests/pv.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := template.New("pv")
+	parse, err := tmp.Parse(string(pvBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := struct {
+		Namespace string
+		Name      string
+	}{
+		Namespace: namespace,
+		Name:      name,
+	}
+
+	var pvParsedBytes bytes.Buffer
+	err = parse.Execute(&pvParsedBytes, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	pvObject, err := runtime.Decode(
+		appsCodecs.UniversalDecoder(corev1.SchemeGroupVersion),
+		pvParsedBytes.Bytes(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return pvObject.(*corev1.PersistentVolume), nil
+}
