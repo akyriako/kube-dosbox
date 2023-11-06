@@ -15,7 +15,11 @@ import (
 
 var (
 	//go:embed manifests/*
-	manifests  embed.FS
+	manifests embed.FS
+
+	//go:embed static/*
+	static embed.FS
+
 	appsScheme = runtime.NewScheme()
 	appsCodecs = serializer.NewCodecFactory(appsScheme)
 )
@@ -99,4 +103,50 @@ func GetPersistentVolumeClaim(namespace string, name string) (*corev1.Persistent
 	}
 
 	return object.(*corev1.PersistentVolumeClaim), nil
+}
+
+func GetConfigMap(namespace string, name string, bundle string) (*corev1.ConfigMap, error) {
+	metadata := struct {
+		Namespace string
+		Name      string
+		Bundle    string
+	}{
+		Namespace: namespace,
+		Name:      name,
+		Bundle:    bundle,
+	}
+
+	object, err := getObject("configmap", corev1.SchemeGroupVersion, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*corev1.ConfigMap), nil
+}
+
+func GetIndex(bundle string) ([]byte, error) {
+	staticBytes, err := static.ReadFile("static/index.html")
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := template.New("index")
+	parse, err := tmp.Parse(string(staticBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := struct {
+		Bundle string
+	}{
+		Bundle: bundle,
+	}
+
+	var buffer bytes.Buffer
+	err = parse.Execute(&buffer, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer.Bytes(), nil
 }

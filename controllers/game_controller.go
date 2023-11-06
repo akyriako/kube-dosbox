@@ -24,6 +24,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -96,9 +97,20 @@ func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game) (ctrl.Result, error) {
+	//index, err := assets.GetIndex(filepath.Base(game.Spec.Url))
+	//if err != nil {
+	//	return ctrl.Result{}, err
+	//}
+
 	deployment, err := assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port)
 	if err != nil {
 		logger.Error(err, "unable to parse deployment template")
+		return ctrl.Result{}, err
+	}
+
+	cmap, err := assets.GetConfigMap(game.Namespace, game.Name, filepath.Base(game.Spec.Url))
+	if err != nil {
+		logger.Error(err, "unable to parse configmap template")
 		return ctrl.Result{}, err
 	}
 
@@ -117,6 +129,18 @@ func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game
 	err = r.Create(ctx, deployment)
 	if err != nil {
 		logger.Error(err, "unable to create deployment")
+		return ctrl.Result{}, err
+	}
+
+	err = ctrl.SetControllerReference(deployment, cmap, r.Scheme)
+	if err != nil {
+		logger.Error(err, "unable to set controller reference")
+		return ctrl.Result{}, err
+	}
+
+	err = r.Create(ctx, cmap)
+	if err != nil {
+		logger.Error(err, "unable to create configmap")
 		return ctrl.Result{}, err
 	}
 

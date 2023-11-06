@@ -20,6 +20,9 @@ spec:
         - name: {{.Name}}-storage
           persistentVolumeClaim:
             claimName: {{.Name}}-pvc
+        - name: {{.Name}}-index
+          configMap:
+            name: {{.Name}}-index-configmap
       containers:
         - name: {{.Name}}-engine
           image: nginx
@@ -27,8 +30,11 @@ spec:
           ports:
             - containerPort: {{.Port}}
           volumeMounts:
-            - mountPath: /mnt/game
+            - mountPath: /usr/share/nginx/html
               name: {{.Name}}-storage
+            - mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+              name: {{.Name}}-index
       initContainers:
         - name: {{.Name}}-init
           image: busybox:1.28
@@ -37,7 +43,7 @@ spec:
           args:
             - -c
             - >-
-                wget -P "/mnt/game" --no-check-certificate https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js;
+                wget -P "/mnt/game" --no-check-certificate https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm;
           volumeMounts:
             - mountPath: /mnt/game
               name: {{.Name}}-storage
