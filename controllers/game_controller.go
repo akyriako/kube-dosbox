@@ -23,6 +23,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -31,6 +32,23 @@ import (
 
 var (
 	logger logr.Logger
+)
+
+var (
+	gameUpdateOrDeletePredicates = builder.WithPredicates(predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			// We only need to check generation changes here, because it is only
+			// updated on spec changes. On the other hand RevisionVersion
+			// changes also on status changes. We want to omit reconciliation
+			// for status updates.
+			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			// DeleteStateUnknown evaluates to false only if the object
+			// has been confirmed as deleted by the api server.
+			return !e.DeleteStateUnknown
+		},
+	})
 )
 
 // GameReconciler reconciles a Game object
@@ -93,20 +111,6 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 // SetupWithManager sets up the controller with the Manager.
 func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&operatorv1alpha1.Game{}).
-		WithEventFilter(setupEventFilterPredicates()).
+		For(&operatorv1alpha1.Game{}, gameUpdateOrDeletePredicates).
 		Complete(r)
-}
-
-func setupEventFilterPredicates() predicate.Predicate {
-	return predicate.Funcs{
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			// Ignore updates to CR status in which case metadata.Generation does not change
-			return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
-		},
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			// Evaluates to false if the object has been confirmed deleted.
-			return !e.DeleteStateUnknown
-		},
-	}
 }
