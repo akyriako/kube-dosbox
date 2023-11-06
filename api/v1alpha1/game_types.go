@@ -40,7 +40,7 @@ type GameSpec struct {
 	ForceRedeploy bool `json:"forceRedeploy,omitempty"`
 
 	// +optional
-	// +kubebuilder:default=8080
+	// +kubebuilder:default=80
 	// +kubebuilder:validation:Type=integer
 	Port int `json:"port,omitempty"`
 }

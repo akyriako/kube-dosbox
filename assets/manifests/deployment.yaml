@@ -22,20 +22,24 @@ spec:
             claimName: {{.Name}}-pvc
       containers:
         - name: {{.Name}}-engine
-          image: traefik/whoami
+          image: nginx
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: {{.Port}}
           volumeMounts:
-            - mountPath: "/app/data"
+            - mountPath: /mnt/game
               name: {{.Name}}-storage
       initContainers:
         - name: {{.Name}}-init
           image: busybox:1.28
           imagePullPolicy: IfNotPresent
-          command: [ 'sh', '-c', 'wget -O game.jsdos -P /app/data --no-check-certificate https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos' ]
+          command: [ "sh" ]
+          args:
+            - -c
+            - >-
+                wget -P "/mnt/game" --no-check-certificate https://architecture-center-jsdos-bundles.obs.eu-de.otc.t-systems.com/1179a7c9e05b1679333ed6db08e7884f6e86c155.jsdos https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js;
           volumeMounts:
-            - mountPath: "/app/data"
+            - mountPath: /mnt/game
               name: {{.Name}}-storage
       restartPolicy: Always
       

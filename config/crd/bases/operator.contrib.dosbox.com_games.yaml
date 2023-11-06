@@ -48,7 +48,7 @@ spec:
               gameName:
                 type: string
               port:
-                default: 8080
+                default: 80
                 type: integer
               url:
                 pattern: ^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$
