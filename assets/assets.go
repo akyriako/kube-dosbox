@@ -88,6 +88,25 @@ func GetDeployment(namespace string, name string, port int) (*appsv1.Deployment,
 	return object.(*appsv1.Deployment), nil
 }
 
+func GetService(namespace string, name string, port int) (*corev1.Service, error) {
+	metadata := struct {
+		Namespace string
+		Name      string
+		Port      int
+	}{
+		Namespace: namespace,
+		Name:      name,
+		Port:      port,
+	}
+
+	object, err := getObject("service", corev1.SchemeGroupVersion, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*corev1.Service), nil
+}
+
 func GetPersistentVolumeClaim(namespace string, name string) (*corev1.PersistentVolumeClaim, error) {
 	metadata := struct {
 		Namespace string

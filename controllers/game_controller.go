@@ -120,6 +120,12 @@ func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game
 		return ctrl.Result{}, err
 	}
 
+	svc, err := assets.GetService(game.Namespace, game.Name, game.Spec.Port)
+	if err != nil {
+		logger.Error(err, "unable to parse svc template")
+		return ctrl.Result{}, err
+	}
+
 	err = ctrl.SetControllerReference(game, deployment, r.Scheme)
 	if err != nil {
 		logger.Error(err, "unable to set controller reference")
@@ -153,6 +159,18 @@ func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game
 	err = r.Create(ctx, pvc)
 	if err != nil {
 		logger.Error(err, "unable to create pvc")
+		return ctrl.Result{}, err
+	}
+
+	err = ctrl.SetControllerReference(deployment, svc, r.Scheme)
+	if err != nil {
+		logger.Error(err, "unable to set controller reference")
+		return ctrl.Result{}, err
+	}
+
+	err = r.Create(ctx, svc)
+	if err != nil {
+		logger.Error(err, "unable to create svc")
 		return ctrl.Result{}, err
 	}
 

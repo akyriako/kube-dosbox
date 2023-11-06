@@ -28,7 +28,7 @@ spec:
           image: nginx
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: {{.Port}}
+            - containerPort: 80
           volumeMounts:
             - mountPath: /usr/share/nginx/html
               name: {{.Name}}-storage
@@ -37,7 +37,8 @@ spec:
               name: {{.Name}}-index
       initContainers:
         - name: {{.Name}}-init
-          image: busybox:1.28
+          image: yauritux/busybox-curl
+#          image: busybox:1.28
           imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
