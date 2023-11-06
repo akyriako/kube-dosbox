@@ -193,9 +193,12 @@ func (r *GameReconciler) CreateOrUpdateService(
 		return svc, nil
 	}
 
-	if int(svc.Spec.Ports[0].Port) != game.Spec.Port {
+	svcPort := svc.Spec.Ports[0].Port
+	specPort := int32(game.Spec.Port)
+
+	if svcPort != specPort {
 		dc := svc.DeepCopy()
-		dc.Spec.Ports[0].Port = int32(game.Spec.Port)
+		dc.Spec.Ports[0].Port = specPort
 
 		err = ctrl.SetControllerReference(game, deployment, r.Scheme)
 		if err != nil {
