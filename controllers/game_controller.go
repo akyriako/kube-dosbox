@@ -19,12 +19,9 @@ package controllers
 import (
 	"context"
 	operatorv1alpha1 "github.com/akyriako/kube-dosbox/api/v1alpha1"
-	"github.com/akyriako/kube-dosbox/assets"
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -70,22 +67,27 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	var exists = true
-	deployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, req.NamespacedName, deployment); err != nil {
-		if apierrors.IsNotFound(err) {
-			exists = false
-		} else {
-			logger.V(5).Error(err, "unable to fetch deployment")
-			return ctrl.Result{}, err
-		}
+	deployment, err := r.CreateOrUpdateDeployment(ctx, req, game)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
-	if (exists && game.Spec.ForceRedeploy) || !exists {
-		return r.create(ctx, game)
-	} else {
-		return r.update(ctx, game)
+	_, err = r.CreateOrUpdateConfigMap(ctx, req, game, deployment)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
+
+	_, err = r.CreateOrUpdatePersistentVolumeClaim(ctx, req, game, deployment)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	_, err = r.CreateOrUpdateService(ctx, req, game, deployment)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -94,91 +96,6 @@ func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&operatorv1alpha1.Game{}).
 		WithEventFilter(setupEventFilterPredicates()).
 		Complete(r)
-}
-
-func (r *GameReconciler) create(ctx context.Context, game *operatorv1alpha1.Game) (ctrl.Result, error) {
-	//index, err := assets.GetIndex(filepath.Base(game.Spec.Url))
-	//if err != nil {
-	//	return ctrl.Result{}, err
-	//}
-
-	deployment, err := assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port)
-	if err != nil {
-		logger.Error(err, "unable to parse deployment template")
-		return ctrl.Result{}, err
-	}
-
-	cmap, err := assets.GetConfigMap(game.Namespace, game.Name, filepath.Base(game.Spec.Url))
-	if err != nil {
-		logger.Error(err, "unable to parse configmap template")
-		return ctrl.Result{}, err
-	}
-
-	pvc, err := assets.GetPersistentVolumeClaim(game.Namespace, game.Name)
-	if err != nil {
-		logger.Error(err, "unable to parse pvc template")
-		return ctrl.Result{}, err
-	}
-
-	svc, err := assets.GetService(game.Namespace, game.Name, game.Spec.Port)
-	if err != nil {
-		logger.Error(err, "unable to parse svc template")
-		return ctrl.Result{}, err
-	}
-
-	err = ctrl.SetControllerReference(game, deployment, r.Scheme)
-	if err != nil {
-		logger.Error(err, "unable to set controller reference")
-		return ctrl.Result{}, err
-	}
-
-	err = r.Create(ctx, deployment)
-	if err != nil {
-		logger.Error(err, "unable to create deployment")
-		return ctrl.Result{}, err
-	}
-
-	err = ctrl.SetControllerReference(deployment, cmap, r.Scheme)
-	if err != nil {
-		logger.Error(err, "unable to set controller reference")
-		return ctrl.Result{}, err
-	}
-
-	err = r.Create(ctx, cmap)
-	if err != nil {
-		logger.Error(err, "unable to create configmap")
-		return ctrl.Result{}, err
-	}
-
-	err = ctrl.SetControllerReference(deployment, pvc, r.Scheme)
-	if err != nil {
-		logger.Error(err, "unable to set controller reference")
-		return ctrl.Result{}, err
-	}
-
-	err = r.Create(ctx, pvc)
-	if err != nil {
-		logger.Error(err, "unable to create pvc")
-		return ctrl.Result{}, err
-	}
-
-	err = ctrl.SetControllerReference(deployment, svc, r.Scheme)
-	if err != nil {
-		logger.Error(err, "unable to set controller reference")
-		return ctrl.Result{}, err
-	}
-
-	err = r.Create(ctx, svc)
-	if err != nil {
-		logger.Error(err, "unable to create svc")
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
-}
-
-func (r *GameReconciler) update(ctx context.Context, game *operatorv1alpha1.Game) (ctrl.Result, error) {
-	return ctrl.Result{}, nil
 }
 
 func setupEventFilterPredicates() predicate.Predicate {
@@ -193,3 +110,205 @@ func setupEventFilterPredicates() predicate.Predicate {
 		},
 	}
 }
+
+//
+//func (r *GameReconciler) CreateOrUpdateDeployment(
+//	ctx context.Context,
+//	req ctrl.Request,
+//	game *operatorv1alpha1.Game,
+//) (*appsv1.Deployment, error) {
+//	create := false
+//
+//	deployment := &appsv1.Deployment{}
+//	err := r.Get(ctx, req.NamespacedName, deployment)
+//	if err != nil {
+//		if apierrors.IsNotFound(err) {
+//			create = true
+//		} else {
+//			logger.V(5).Error(err, "unable to fetch deployment")
+//			return nil, err
+//		}
+//	}
+//
+//	if create {
+//		deployment, err = assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port)
+//		if err != nil {
+//			logger.Error(err, "unable to parse deployment template")
+//			return nil, err
+//		}
+//
+//		err = ctrl.SetControllerReference(game, deployment, r.Scheme)
+//		if err != nil {
+//			logger.Error(err, "unable to set controller reference")
+//			return nil, err
+//		}
+//
+//		err = r.Create(ctx, deployment)
+//		if err != nil {
+//			logger.Error(err, "unable to create deployment")
+//			return nil, err
+//		}
+//
+//		return deployment, nil
+//	}
+//
+//	return deployment, nil
+//}
+//
+//func (r *GameReconciler) CreateOrUpdateConfigMap(
+//	ctx context.Context,
+//	req ctrl.Request,
+//	game *operatorv1alpha1.Game,
+//	deployment *appsv1.Deployment,
+//) (*corev1.ConfigMap, error) {
+//	create := false
+//
+//	cmap := &corev1.ConfigMap{}
+//	objectKey := client.ObjectKey{
+//		Namespace: req.Namespace,
+//		Name:      fmt.Sprintf("%s-index-configmap", req.Name),
+//	}
+//	err := r.Get(ctx, objectKey, cmap)
+//	if err != nil {
+//		if apierrors.IsNotFound(err) {
+//			create = true
+//		} else {
+//			logger.V(5).Error(err, "unable to fetch configmap")
+//			return nil, err
+//		}
+//	}
+//
+//	if create {
+//		cmap, err := assets.GetConfigMap(game.Namespace, game.Name, filepath.Base(game.Spec.Url))
+//		if err != nil {
+//			logger.Error(err, "unable to parse configmap template")
+//			return nil, err
+//		}
+//
+//		err = ctrl.SetControllerReference(deployment, cmap, r.Scheme)
+//		if err != nil {
+//			logger.Error(err, "unable to set controller reference")
+//			return nil, err
+//		}
+//
+//		err = r.Create(ctx, cmap)
+//		if err != nil {
+//			logger.Error(err, "unable to create configmap")
+//			return nil, err
+//		}
+//
+//		return cmap, nil
+//	}
+//
+//	return cmap, nil
+//}
+//
+//func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaim(
+//	ctx context.Context,
+//	req ctrl.Request,
+//	game *operatorv1alpha1.Game,
+//	deployment *appsv1.Deployment,
+//) (*corev1.PersistentVolumeClaim, error) {
+//	create := false
+//
+//	pvc := &corev1.PersistentVolumeClaim{}
+//	objectKey := client.ObjectKey{
+//		Namespace: req.Namespace,
+//		Name:      fmt.Sprintf("%s-pvc", req.Name),
+//	}
+//	err := r.Get(ctx, objectKey, pvc)
+//	if err != nil {
+//		if apierrors.IsNotFound(err) {
+//			create = true
+//		} else {
+//			logger.V(5).Error(err, "unable to fetch pvc")
+//			return nil, err
+//		}
+//	}
+//
+//	if create {
+//		pvc, err := assets.GetPersistentVolumeClaim(game.Namespace, game.Name)
+//		if err != nil {
+//			logger.Error(err, "unable to parse pvc template")
+//			return nil, err
+//		}
+//
+//		err = ctrl.SetControllerReference(deployment, pvc, r.Scheme)
+//		if err != nil {
+//			logger.Error(err, "unable to set controller reference")
+//			return nil, err
+//		}
+//
+//		err = r.Create(ctx, pvc)
+//		if err != nil {
+//			logger.Error(err, "unable to create pvc")
+//			return nil, err
+//		}
+//
+//		return pvc, nil
+//	}
+//
+//	return pvc, nil
+//}
+//
+//func (r *GameReconciler) CreateOrUpdateService(
+//	ctx context.Context,
+//	req ctrl.Request,
+//	game *operatorv1alpha1.Game,
+//	deployment *appsv1.Deployment,
+//) (*corev1.Service, error) {
+//	create := false
+//
+//	svc := &corev1.Service{}
+//	err := r.Get(ctx, req.NamespacedName, svc)
+//	if err != nil {
+//		if apierrors.IsNotFound(err) {
+//			create = true
+//		} else {
+//			logger.V(5).Error(err, "unable to fetch svc")
+//			return nil, err
+//		}
+//	}
+//
+//	if create {
+//		svc, err := assets.GetService(game.Namespace, game.Name, game.Spec.Port)
+//		if err != nil {
+//			logger.Error(err, "unable to parse svc template")
+//			return nil, err
+//		}
+//
+//		err = ctrl.SetControllerReference(deployment, svc, r.Scheme)
+//		if err != nil {
+//			logger.Error(err, "unable to set controller reference")
+//			return nil, err
+//		}
+//
+//		err = r.Create(ctx, svc)
+//		if err != nil {
+//			logger.Error(err, "unable to create svc")
+//			return nil, err
+//		}
+//
+//		return svc, nil
+//	}
+//
+//	if int(svc.Spec.Ports[0].Port) != game.Spec.Port {
+//		dc := svc.DeepCopy()
+//		dc.Spec.Ports[0].Port = int32(game.Spec.Port)
+//
+//		err = ctrl.SetControllerReference(game, deployment, r.Scheme)
+//		if err != nil {
+//			logger.Error(err, "unable to set controller reference")
+//			return nil, err
+//		}
+//
+//		err = r.Update(ctx, dc)
+//		if err != nil {
+//			logger.Error(err, "unable to update svc")
+//			return nil, err
+//		}
+//	}
+//
+//	return svc, nil
+//}
+//
