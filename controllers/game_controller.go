@@ -28,7 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"time"
 )
 
 var (
@@ -86,6 +85,10 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
+	if game.Status.Ready == nil {
+		_ = r.SetStatus(ctx, req, game, false)
+	}
+
 	deployment, err := r.CreateOrUpdateDeployment(ctx, req, game)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -106,38 +109,7 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	ready, err := r.GetStatus(ctx, req, deployment.Labels["app"])
-	if err != nil {
-		logger.Error(err, "unable to fetch pod status")
-
-		_ = r.SetStatus(ctx, req, game, false)
-
-		return ctrl.Result{
-			Requeue:      true,
-			RequeueAfter: 15 * time.Second,
-		}, err
-	}
-
-	if !ready {
-		logger.Info("pod not ready, requeue in 15sec")
-
-		_ = r.SetStatus(ctx, req, game, ready)
-
-		return ctrl.Result{
-			Requeue:      true,
-			RequeueAfter: 15 * time.Second,
-		}, nil
-	}
-
-	err = r.SetStatus(ctx, req, game, ready)
-	if err != nil {
-		return ctrl.Result{
-			Requeue:      true,
-			RequeueAfter: 15 * time.Second,
-		}, nil
-	}
-
-	return ctrl.Result{}, nil
+	return r.RefreshStatus(ctx, req, game, deployment.Labels["app"])
 }
 
 // SetupWithManager sets up the controller with the Manager.

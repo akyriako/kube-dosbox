@@ -42,14 +42,16 @@ type GameSpec struct {
 	// +optional
 	// +kubebuilder:default=80
 	// +kubebuilder:validation:Type=integer
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:validation:ExclusiveMinimum=false
+	// +kubebuilder:validation:ExclusiveMaximum=false
 	Port int `json:"port,omitempty"`
 }
 
 // GameStatus defines the observed state of Game
 type GameStatus struct {
-
-	// +kubebuilder:default=false
-	Ready bool `json:"ready,omitempty"`
+	Ready *bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true

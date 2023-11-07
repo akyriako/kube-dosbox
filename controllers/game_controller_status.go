@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"time"
 )
 
 func (r *GameReconciler) GetStatus(ctx context.Context, req ctrl.Request, appLabel string) (bool, error) {
@@ -20,7 +21,6 @@ func (r *GameReconciler) GetStatus(ctx context.Context, req ctrl.Request, appLab
 		return false, err
 	}
 
-	ready := false
 	for _, pod := range pods.Items {
 		if len(pod.Status.InitContainerStatuses) > 0 && len(pod.Status.ContainerStatuses) > 0 {
 			init := pod.Status.InitContainerStatuses[0]
@@ -32,12 +32,12 @@ func (r *GameReconciler) GetStatus(ctx context.Context, req ctrl.Request, appLab
 		return false, fmt.Errorf("unable to find containers in pod")
 	}
 
-	return ready, nil
+	return false, nil
 }
 
 func (r *GameReconciler) SetStatus(ctx context.Context, req ctrl.Request, game *operatorv1alpha1.Game, ready bool) error {
 	patch := client.MergeFrom(game.DeepCopy())
-	game.Status.Ready = ready
+	game.Status.Ready = &ready
 
 	err := r.Status().Patch(ctx, game, patch)
 	if err != nil {
@@ -46,4 +46,39 @@ func (r *GameReconciler) SetStatus(ctx context.Context, req ctrl.Request, game *
 	}
 
 	return nil
+}
+
+func (r *GameReconciler) RefreshStatus(ctx context.Context, req ctrl.Request, game *operatorv1alpha1.Game, appLabel string) (ctrl.Result, error) {
+	ready, err := r.GetStatus(ctx, req, appLabel)
+	if err != nil {
+		logger.Error(err, "unable to fetch pod status")
+
+		_ = r.SetStatus(ctx, req, game, false)
+
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, err
+	}
+
+	if !ready {
+		logger.Info("pod not ready, requeue in 15sec")
+
+		_ = r.SetStatus(ctx, req, game, ready)
+
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, nil
+	}
+
+	err = r.SetStatus(ctx, req, game, ready)
+	if err != nil {
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, nil
+	}
+
+	return ctrl.Result{}, nil
 }
