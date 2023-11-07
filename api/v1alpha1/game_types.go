@@ -47,6 +47,8 @@ type GameSpec struct {
 
 // GameStatus defines the observed state of Game
 type GameStatus struct {
+
+	// +kubebuilder:default=false
 	Ready bool `json:"ready,omitempty"`
 }
 

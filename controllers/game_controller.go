@@ -20,8 +20,6 @@ import (
 	"context"
 	operatorv1alpha1 "github.com/akyriako/kube-dosbox/api/v1alpha1"
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -30,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"time"
 )
 
 var (
@@ -107,6 +106,37 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
+	ready, err := r.GetStatus(ctx, req, deployment.Labels["app"])
+	if err != nil {
+		logger.Error(err, "unable to fetch pod status")
+
+		_ = r.SetStatus(ctx, req, game, false)
+
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, err
+	}
+
+	if !ready {
+		logger.Info("pod not ready, requeue in 15sec")
+
+		_ = r.SetStatus(ctx, req, game, ready)
+
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, nil
+	}
+
+	err = r.SetStatus(ctx, req, game, ready)
+	if err != nil {
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: 15 * time.Second,
+		}, nil
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -114,9 +144,9 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.Game{}, gameUpdateOrDeletePredicates).
-		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&corev1.PersistentVolumeClaim{}).
-		Owns(&corev1.Service{}).
+		//Owns(&appsv1.Deployment{}).
+		//Owns(&corev1.ConfigMap{}).
+		//Owns(&corev1.PersistentVolumeClaim{}).
+		//Owns(&corev1.Service{}).
 		Complete(r)
 }
