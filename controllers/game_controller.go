@@ -89,6 +89,15 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		_ = r.SetStatus(ctx, req, game, false)
 	}
 
+	if !game.Spec.Deploy {
+		err := r.DeleteDeployment(ctx, req, game)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	}
+
 	deployment, err := r.CreateOrUpdateDeployment(ctx, req, game)
 	if err != nil {
 		return ctrl.Result{}, err

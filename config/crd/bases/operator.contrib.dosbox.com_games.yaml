@@ -19,6 +19,9 @@ spec:
     - jsonPath: .spec.gameName
       name: Game
       type: string
+    - jsonPath: .spec.deploy
+      name: Deploy
+      type: boolean
     - jsonPath: .status.ready
       name: Ready
       type: boolean
@@ -42,6 +45,9 @@ spec:
           spec:
             description: GameSpec defines the desired state of Game
             properties:
+              deploy:
+                default: false
+                type: boolean
               forceRedeploy:
                 default: false
                 type: boolean
@@ -56,6 +62,7 @@ spec:
                 pattern: ^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$
                 type: string
             required:
+            - deploy
             - gameName
             - url
             type: object

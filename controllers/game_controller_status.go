@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 	"time"
 )
 
@@ -45,6 +46,7 @@ func (r *GameReconciler) SetStatus(ctx context.Context, req ctrl.Request, game *
 		return err
 	}
 
+	logger.Info(fmt.Sprintf("%s is ready", strings.ToLower(game.Spec.GameName)))
 	return nil
 }
 

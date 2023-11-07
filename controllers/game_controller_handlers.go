@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 func (r *GameReconciler) CreateOrUpdateDeployment(
@@ -54,6 +55,32 @@ func (r *GameReconciler) CreateOrUpdateDeployment(
 	}
 
 	return deployment, nil
+}
+
+func (r *GameReconciler) DeleteDeployment(
+	ctx context.Context,
+	req ctrl.Request,
+	game *operatorv1alpha1.Game,
+) error {
+	deployment := &appsv1.Deployment{}
+	err := r.Get(ctx, req.NamespacedName, deployment)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		} else {
+			logger.V(5).Error(err, "unable to fetch deployment")
+			return err
+		}
+	}
+
+	err = r.Delete(ctx, deployment)
+	if err != nil {
+		return err
+	}
+
+	logger.Info(fmt.Sprintf("%s is removed", strings.ToLower(game.Spec.GameName)))
+
+	return nil
 }
 
 func (r *GameReconciler) CreateOrUpdateConfigMap(
