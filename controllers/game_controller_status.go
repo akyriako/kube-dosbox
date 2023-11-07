@@ -37,16 +37,19 @@ func (r *GameReconciler) GetStatus(ctx context.Context, req ctrl.Request, appLab
 }
 
 func (r *GameReconciler) SetStatus(ctx context.Context, req ctrl.Request, game *operatorv1alpha1.Game, ready bool) error {
-	patch := client.MergeFrom(game.DeepCopy())
-	game.Status.Ready = &ready
+	if game.Status.Ready != &ready {
+		patch := client.MergeFrom(game.DeepCopy())
+		game.Status.Ready = &ready
 
-	err := r.Status().Patch(ctx, game, patch)
-	if err != nil {
-		logger.Error(err, "unable to patch game status")
-		return err
+		err := r.Status().Patch(ctx, game, patch)
+		if err != nil {
+			logger.Error(err, "unable to patch game status")
+			return err
+		}
+
+		logger.Info(fmt.Sprintf("%s is ready", strings.ToLower(game.Name)))
 	}
 
-	logger.Info(fmt.Sprintf("%s is ready", strings.ToLower(game.Spec.GameName)))
 	return nil
 }
 
