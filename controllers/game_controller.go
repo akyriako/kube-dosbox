@@ -95,6 +95,8 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			return ctrl.Result{}, err
 		}
 
+		_ = r.SetStatus(ctx, req, game, false)
+
 		return ctrl.Result{}, nil
 	}
 
