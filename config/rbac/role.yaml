@@ -8,7 +8,10 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - deployments
+  - configmaps
+  - persistentvolumeclaims
+  - pods
+  - services
   verbs:
   - create
   - delete
@@ -20,7 +23,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pvc
+  - deployments
   verbs:
   - create
   - delete

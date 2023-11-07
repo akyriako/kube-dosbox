@@ -80,7 +80,7 @@ func (r *GameReconciler) CreateOrUpdateConfigMap(
 	}
 
 	if create {
-		cmap, err := assets.GetConfigMap(game.Namespace, game.Name, filepath.Base(game.Spec.Url))
+		cmap, err = assets.GetConfigMap(game.Namespace, game.Name, filepath.Base(game.Spec.Url))
 		if err != nil {
 			logger.Error(err, "unable to parse configmap template")
 			return nil, err
@@ -128,7 +128,7 @@ func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaim(
 	}
 
 	if create {
-		pvc, err := assets.GetPersistentVolumeClaim(game.Namespace, game.Name)
+		pvc, err = assets.GetPersistentVolumeClaim(game.Namespace, game.Name)
 		if err != nil {
 			logger.Error(err, "unable to parse pvc template")
 			return nil, err
@@ -172,7 +172,7 @@ func (r *GameReconciler) CreateOrUpdateService(
 	}
 
 	if create {
-		svc, err := assets.GetService(game.Namespace, game.Name, game.Spec.Port)
+		svc, err = assets.GetService(game.Namespace, game.Name, game.Spec.Port)
 		if err != nil {
 			logger.Error(err, "unable to parse svc template")
 			return nil, err
