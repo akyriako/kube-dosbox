@@ -69,15 +69,17 @@ func getObject(name string, gv schema.GroupVersion, metadata any) (runtime.Objec
 	return object, nil
 }
 
-func GetDeployment(namespace string, name string, port int) (*appsv1.Deployment, error) {
+func GetDeployment(namespace string, name string, port int, bundleUrl string) (*appsv1.Deployment, error) {
 	metadata := struct {
 		Namespace string
 		Name      string
 		Port      int
+		BundleUrl string
 	}{
 		Namespace: namespace,
 		Name:      name,
 		Port:      port,
+		BundleUrl: bundleUrl,
 	}
 
 	object, err := getObject("deployment", appsv1.SchemeGroupVersion, metadata)

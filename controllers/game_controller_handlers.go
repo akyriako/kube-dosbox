@@ -37,7 +37,7 @@ func (r *GameReconciler) CreateOrUpdateDeployment(
 	}
 
 	if create {
-		deployment, err = assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port)
+		deployment, err = assets.GetDeployment(game.Namespace, game.Name, game.Spec.Port, game.Spec.Url)
 		if err != nil {
 			logger.Error(err, "unable to parse deployment template")
 			return nil, err

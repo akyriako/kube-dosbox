@@ -86,7 +86,7 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if game.Status.Ready == nil {
-		_ = r.SetStatus(ctx, req, game, false)
+		//_ = r.SetStatus(ctx, req, game, false)
 	}
 
 	if !game.Spec.Deploy {
