@@ -107,13 +107,15 @@ func GetService(namespace string, name string, port int) (*corev1.Service, error
 	return object.(*corev1.Service), nil
 }
 
-func GetPersistentVolumeClaim(namespace string, name string) (*corev1.PersistentVolumeClaim, error) {
+func GetPersistentVolumeClaim(namespace string, name string, storage uint64) (*corev1.PersistentVolumeClaim, error) {
 	metadata := struct {
 		Namespace string
 		Name      string
+		Storage   uint64
 	}{
 		Namespace: namespace,
 		Name:      name,
+		Storage:   storage,
 	}
 
 	object, err := getObject("pvc", corev1.SchemeGroupVersion, metadata)

@@ -5,12 +5,16 @@ import (
 	"fmt"
 	operatorv1alpha1 "github.com/akyriako/kube-dosbox/api/v1alpha1"
 	"github.com/akyriako/kube-dosbox/assets"
+	"github.com/heistp/antler/node/metric"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"math"
+	"net/http"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 	"strings"
 )
 
@@ -155,7 +159,26 @@ func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaim(
 	}
 
 	if create {
-		pvc, err = assets.GetPersistentVolumeClaim(game.Namespace, game.Name)
+		response, err := http.Head(game.Spec.Url)
+		if err != nil {
+			return nil, err
+		}
+
+		if response.StatusCode != http.StatusOK {
+			return nil, err
+		}
+
+		var storage metric.Bytes
+		length, err := strconv.Atoi(response.Header.Get("Content-Length"))
+		if err != nil {
+			storage = metric.Bytes(20 * 1024 * 1024)
+		}
+
+		extras := metric.Bytes(10 * 1024 * 1024)
+		storage = metric.Bytes(length)
+		mib := uint64(math.Round((storage.Mebibytes() * 0.1) + extras.Mebibytes() + storage.Mebibytes()))
+
+		pvc, err = assets.GetPersistentVolumeClaim(game.Namespace, game.Name, mib)
 		if err != nil {
 			logger.Error(err, "unable to parse pvc template")
 			return nil, err
