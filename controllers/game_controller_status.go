@@ -52,7 +52,11 @@ func (r *GameReconciler) SetStatus(
 	ready bool,
 ) error {
 	patch := client.MergeFrom(game.DeepCopy())
-	game.Status.Ready = &ready
+	if ready == true {
+		game.Status.Ready = &ready
+	} else {
+		game.Status.Ready = nil
+	}
 
 	err := r.Status().Patch(ctx, game, patch)
 	if err != nil {

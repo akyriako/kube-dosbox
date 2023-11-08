@@ -35,7 +35,7 @@ var (
 )
 
 var (
-	gameUpdateOrDeletePredicates = builder.WithPredicates(predicate.Funcs{
+	gameEventFilters = builder.WithPredicates(predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// We only need to check generation changes here, because it is only
 			// updated on spec changes. On the other hand RevisionVersion
@@ -47,6 +47,14 @@ var (
 			// DeleteStateUnknown evaluates to false only if the object
 			// has been confirmed as deleted by the api server.
 			return !e.DeleteStateUnknown
+		},
+		CreateFunc: func(e event.CreateEvent) bool {
+			switch object := e.Object.(type) {
+			case *operatorv1alpha1.Game:
+				return object.Spec.Deploy
+			default:
+				return false
+			}
 		},
 	})
 )
@@ -126,7 +134,7 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 // SetupWithManager sets up the controller with the Manager.
 func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&operatorv1alpha1.Game{}, gameUpdateOrDeletePredicates).
+		For(&operatorv1alpha1.Game{}, gameEventFilters).
 		//Owns(&appsv1.Deployment{}).
 		//Owns(&corev1.ConfigMap{}).
 		//Owns(&corev1.PersistentVolumeClaim{}).
