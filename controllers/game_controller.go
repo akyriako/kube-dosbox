@@ -135,9 +135,5 @@ func (r *GameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func (r *GameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.Game{}, gameEventFilters).
-		//Owns(&appsv1.Deployment{}).
-		//Owns(&corev1.ConfigMap{}).
-		//Owns(&corev1.PersistentVolumeClaim{}).
-		//Owns(&corev1.Service{}).
 		Complete(r)
 }
