@@ -1,8 +1,10 @@
 # kube-dosbox
-// TODO(user): Add simple overview of use/purpose
+Build an MS-DOS games emulator on Kubernetes.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+Build your very own Kubernetes MS-DOS games emulator using js-dos JavaScript library and play retro games in your browser. The core idea is the following: we need a single structural entity that will point to the game bundle and let Kubernetes take care the provisioning and lifecycle of the elements required to make this game playable in a browser.
+
+Read more [here][https://medium.com/p/146ba6f142d9]
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
