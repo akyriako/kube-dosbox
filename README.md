@@ -4,7 +4,7 @@ Build an MS-DOS games emulator on Kubernetes.
 ![kube-dosbox cover with red alert and aladdin](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CHLLNx1ZZUaPjwho86lFoA.jpeg)
 
 ## Description
-Build your very own Kubernetes MS-DOS games emulator using [js-dos JavaScript library](https://github.com/caiiiycuk/js-dos) and play retro games in your browser. The core idea is the following: we need a single structural entity that will point to the game bundle and let Kubernetes take care the provisioning and lifecycle of the elements required to make this game playable in a browser.
+Build your very own Kubernetes MS-DOS games emulator using [js-dos JavaScript library](https://github.com/caiiiycuk/js-dos){:target="_blank"} and play retro games in your browser. The core idea is the following: we need a single structural entity that will point to the game bundle and let Kubernetes take care the provisioning and lifecycle of the elements required to make this game playable in a browser.
 
 ![simple diagramm of the k8s resources involved](https://miro.medium.com/v2/resize:fit:1246/format:webp/1*4a-yeHhlamxaYCi1-vXdvw.png)
 
