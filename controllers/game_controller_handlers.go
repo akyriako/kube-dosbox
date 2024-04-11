@@ -202,6 +202,72 @@ func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaim(
 	return pvc, nil
 }
 
+func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaimAssets(
+	ctx context.Context,
+	req ctrl.Request,
+	game *operatorv1alpha1.Game,
+) (*corev1.PersistentVolumeClaim, error) {
+	create := false
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	objectKey := client.ObjectKey{
+		Namespace: req.Namespace,
+		Name:      fmt.Sprintf("%s-pvc", "kube-dosbox-assets"),
+	}
+	err := r.Get(ctx, objectKey, pvc)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			create = true
+		} else {
+			logger.V(5).Error(err, "unable to fetch pvc")
+			return nil, err
+		}
+	}
+
+	if create {
+		response, err := http.Head(game.Spec.Url)
+		if err != nil {
+			return nil, err
+		}
+
+		if response.StatusCode != http.StatusOK {
+			return nil, err
+		}
+
+		var storage metric.Bytes
+		length, err := strconv.Atoi(response.Header.Get("Content-Length"))
+		if err != nil {
+			storage = metric.Bytes(20 * 1024 * 1024)
+		}
+
+		extras := metric.Bytes(10 * 1024 * 1024)
+		storage = metric.Bytes(length)
+		mib := uint64(math.Round((storage.Mebibytes() * 0.1) + extras.Mebibytes() + storage.Mebibytes()))
+
+		pvc, err = assets.GetPersistentVolumeClaimAssets(game.Namespace, game.Name, mib)
+		if err != nil {
+			logger.Error(err, "unable to parse pvc template")
+			return nil, err
+		}
+
+		//err = ctrl.SetControllerReference(deployment, pvc, r.Scheme)
+		//if err != nil {
+		//	logger.Error(err, "unable to set controller reference")
+		//	return nil, err
+		//}
+
+		err = r.Create(ctx, pvc)
+		if err != nil {
+			logger.Error(err, "unable to create pvc")
+			return nil, err
+		}
+
+		return pvc, nil
+	}
+
+	return pvc, nil
+}
+
 func (r *GameReconciler) CreateOrUpdateService(
 	ctx context.Context,
 	req ctrl.Request,
