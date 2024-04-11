@@ -17,6 +17,9 @@ spec:
         app: {{.Name}}
     spec:
       volumes:
+        - name: kube-dosbox-assets
+          persistentVolumeClaim:
+            claimName: kube-dosbox-assets-pvc
         - name: {{.Name}}-storage
           persistentVolumeClaim:
             claimName: {{.Name}}-pvc
@@ -33,6 +36,8 @@ spec:
           ports:
             - containerPort: 80
           volumeMounts:
+            - mountPath: /usr/share/nginx/html/assets
+              name: kube-dosbox-assets
             - mountPath: /usr/share/nginx/html
               name: {{.Name}}-storage
             - mountPath: /usr/share/nginx/html/index.html
@@ -42,16 +47,28 @@ spec:
               subPath: favicon.ico
               name: {{.Name}}-favicon
       initContainers:
-        - name: {{.Name}}-init
+        - name: {{.Name}}-init-bundle
           image: yauritux/busybox-curl
           imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
             - -c
             - >-
-                wget -nc -P "/mnt/game" --no-check-certificate {{.BundleUrl}} https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+                curl -k --create-dirs -O --output-dir "/mnt/game" {{.BundleUrl}};
           volumeMounts:
             - mountPath: /mnt/game
               name: {{.Name}}-storage
+        - name: {{.Name}}-init-assets
+          image: yauritux/busybox-curl
+          imagePullPolicy: IfNotPresent
+          command: [ "sh" ]
+          args:
+            - -c
+            - >-
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+          volumeMounts:
+            - mountPath: /mnt/game/assets
+              name: kube-dosbox-assets
       restartPolicy: Always
-      
+
+

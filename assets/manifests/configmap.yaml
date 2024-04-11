@@ -17,13 +17,13 @@ data:
                 padding: 0;
             }
         </style>
-        <script src="js-dos.js"></script>
-        <link href="js-dos.css" rel="stylesheet">
+        <script src="assets/js-dos.js"></script>
+        <link href="assets/js-dos.css" rel="stylesheet">
     </head>
     <body>
     <div id="jsdos"/>
     <script>
-        emulators.pathPrefix = "/";
+        emulators.pathPrefix = "/assets/";
         Dos(document.getElementById("jsdos"))
             .run("{{.Bundle}}");
     </script>

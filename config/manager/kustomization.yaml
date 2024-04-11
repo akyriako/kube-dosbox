@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: akyriako78/kube-dosbox
-  newTag: v0.2.8-dev
+  newTag: v0.3.1-dev.rc2

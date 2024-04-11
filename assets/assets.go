@@ -128,6 +128,25 @@ func GetPersistentVolumeClaim(namespace string, name string, storage uint64) (*c
 	return object.(*corev1.PersistentVolumeClaim), nil
 }
 
+func GetPersistentVolumeClaimAssets(namespace string, name string, storage uint64) (*corev1.PersistentVolumeClaim, error) {
+	metadata := struct {
+		Namespace string
+		Name      string
+		Storage   uint64
+	}{
+		Namespace: namespace,
+		Name:      name,
+		Storage:   storage,
+	}
+
+	object, err := getObject("pvc-assets", corev1.SchemeGroupVersion, metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*corev1.PersistentVolumeClaim), nil
+}
+
 func GetConfigMap(namespace string, name string, bundle string) (*corev1.ConfigMap, error) {
 	metadata := struct {
 		Namespace string
