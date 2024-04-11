@@ -24,3 +24,5 @@ bin/kustomize
 
 # Go workspace file
 go.work
+bin/controller-gen
+bin/kustomize
