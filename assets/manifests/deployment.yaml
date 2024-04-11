@@ -29,7 +29,7 @@ spec:
       containers:
         - name: {{.Name}}-engine
           image: nginx
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           volumeMounts:
@@ -44,7 +44,7 @@ spec:
       initContainers:
         - name: {{.Name}}-init
           image: yauritux/busybox-curl
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: [ "sh" ]
           args:
             - -c
