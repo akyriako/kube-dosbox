@@ -18,7 +18,9 @@
 # vendor/
 
 # Binaries
-bin/
+bin/*
+bin/controller-gen
+bin/kustomize
 
 # Go workspace file
 go.work

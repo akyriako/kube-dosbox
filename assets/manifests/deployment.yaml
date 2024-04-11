@@ -23,6 +23,9 @@ spec:
         - name: {{.Name}}-index
           configMap:
             name: {{.Name}}-index-configmap
+        - name: {{.Name}}-favicon
+          configMap:
+            name: {{.Name}}-index-configmap
       containers:
         - name: {{.Name}}-engine
           image: nginx
@@ -35,16 +38,18 @@ spec:
             - mountPath: /usr/share/nginx/html/index.html
               subPath: index.html
               name: {{.Name}}-index
+            - mountPath: /usr/share/nginx/html/favicon.ico
+              subPath: favicon.ico
+              name: {{.Name}}-favicon
       initContainers:
         - name: {{.Name}}-init
           image: yauritux/busybox-curl
-#          image: busybox:1.28
           imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
             - -c
             - >-
-                wget -P "/mnt/game" --no-check-certificate {{.BundleUrl}} https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm;
+                wget -nc -P "/mnt/game" --no-check-certificate {{.BundleUrl}} https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
           volumeMounts:
             - mountPath: /mnt/game
               name: {{.Name}}-storage
