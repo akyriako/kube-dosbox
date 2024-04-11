@@ -1,0 +1,8 @@
+apiVersion: operator.contrib.dosbox.com/v1alpha1
+kind: Game
+metadata:
+  name: packman-1983
+spec:
+  gameName: Packman
+  url: https://cdn.dos.zone/custom/dos/packman.jsdos
+  deploy: true

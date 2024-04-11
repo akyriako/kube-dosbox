@@ -48,24 +48,24 @@ spec:
               name: {{.Name}}-favicon
       initContainers:
         - name: {{.Name}}-init-bundle
-          image: busybox:1.35.0-musl
+          image: yauritux/busybox-curl
           imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
             - -c
             - >-
-                wget -nc -P "/mnt/game" --no-check-certificate {{.BundleUrl}};
+                curl -k --create-dirs -O --output-dir "/mnt/game" {{.BundleUrl}};
           volumeMounts:
             - mountPath: /mnt/game
               name: {{.Name}}-storage
         - name: {{.Name}}-init-assets
-          image: busybox:1.35.0-musl
+          image: yauritux/busybox-curl
           imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
             - -c
             - >-
-              wget -nc -P "/mnt/game/assets" --no-check-certificate https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
           volumeMounts:
             - mountPath: /mnt/game/assets
               name: kube-dosbox-assets
