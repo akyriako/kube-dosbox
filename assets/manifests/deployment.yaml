@@ -17,6 +17,9 @@ spec:
         app: {{.Name}}
     spec:
       volumes:
+        - name: kube-dosbox-assets
+          persistentVolumeClaim:
+            claimName: kube-dosbox-assets-pvc
         - name: {{.Name}}-storage
           persistentVolumeClaim:
             claimName: {{.Name}}-pvc
@@ -29,10 +32,12 @@ spec:
       containers:
         - name: {{.Name}}-engine
           image: nginx
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           volumeMounts:
+            - mountPath: /usr/share/nginx/html/assets
+              name: kube-dosbox-assets
             - mountPath: /usr/share/nginx/html
               name: {{.Name}}-storage
             - mountPath: /usr/share/nginx/html/index.html
@@ -42,16 +47,28 @@ spec:
               subPath: favicon.ico
               name: {{.Name}}-favicon
       initContainers:
-        - name: {{.Name}}-init
-          image: yauritux/busybox-curl
-          imagePullPolicy: Always
+        - name: {{.Name}}-init-bundle
+          image: busybox:1.35.0-musl
+          imagePullPolicy: IfNotPresent
           command: [ "sh" ]
           args:
             - -c
             - >-
-                wget -nc -P "/mnt/game" --no-check-certificate {{.BundleUrl}} https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+                wget -nc -P "/mnt/game" --no-check-certificate {{.BundleUrl}};
           volumeMounts:
             - mountPath: /mnt/game
               name: {{.Name}}-storage
+        - name: {{.Name}}-init-assets
+          image: busybox:1.35.0-musl
+          imagePullPolicy: IfNotPresent
+          command: [ "sh" ]
+          args:
+            - -c
+            - >-
+              wget -nc -P "/mnt/game/assets" --no-check-certificate https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+          volumeMounts:
+            - mountPath: /mnt/game/assets
+              name: kube-dosbox-assets
       restartPolicy: Always
-      
+
+
