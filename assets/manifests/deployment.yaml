@@ -65,7 +65,11 @@ spec:
           args:
             - -c
             - >-
-              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.css;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/js-dos.js;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.js;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://js-dos.com/v7/build/releases/latest/js-dos/wdosbox.wasm;
+              curl -k --create-dirs -O --output-dir "/mnt/game/assets" https://raw.githubusercontent.com/js-dos/emulators-ui/55c30ae55ebcff2d0bcbe1d8061fd1bdc20d95f0/src/emulators-ui-loader.png;
           volumeMounts:
             - mountPath: /mnt/game/assets
               name: kube-dosbox-assets

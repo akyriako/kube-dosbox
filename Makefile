@@ -48,7 +48,7 @@ endif
 
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= akyriako78/kube-dosbox:v0.3.1-dev.rc3
+IMG ?= akyriako78/kube-dosbox:v0.3.1-dev.rc6
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.0
