@@ -29,14 +29,12 @@ func (r *GameReconciler) GetStatus(
 	ready := false
 	for _, pod := range pods.Items {
 		if len(pod.Status.InitContainerStatuses) > 0 && len(pod.Status.ContainerStatuses) > 0 {
-			init := pod.Status.InitContainerStatuses[0]
-			engine := pod.Status.InitContainerStatuses[0]
+			init := pod.Status.InitContainerStatuses[0].Ready && pod.Status.InitContainerStatuses[1].Ready
+			engine := pod.Status.ContainerStatuses[0]
 
-			ready = init.Ready && engine.Ready
+			ready = init && engine.Ready
 		}
 
-		// If at *least one* of the Pods in the Deployment is Ready
-		// declare the whole Game as Ready to be played.
 		if ready {
 			break
 		}

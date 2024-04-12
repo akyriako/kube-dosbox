@@ -1,6 +1,12 @@
 apiVersion: operator.contrib.dosbox.com/v1alpha1
 kind: Game
 metadata:
+  labels:
+    app.kubernetes.io/name: game
+    app.kubernetes.io/instance: packman-1983
+    app.kubernetes.io/created-by: kube-dosbox
+    app.kubernetes.io/part-of: kube-dosbox
+    app.kubernetes.io/managed-by: kustomize
   name: packman-1983
 spec:
   gameName: Packman

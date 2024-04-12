@@ -4,9 +4,9 @@ metadata:
   labels:
     app.kubernetes.io/name: game
     app.kubernetes.io/instance: prince-of-persia
+    app.kubernetes.io/created-by: kube-dosbox
     app.kubernetes.io/part-of: kube-dosbox
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: kube-dosbox
   name: prince-of-persia
 spec:
   gameName: "Prince of Persia"
