@@ -28,7 +28,7 @@ func (r *GameReconciler) GetStatus(
 
 	ready := false
 	for _, pod := range pods.Items {
-		if len(pod.Status.InitContainerStatuses) > 0 && len(pod.Status.ContainerStatuses) > 0 {
+		if len(pod.Status.InitContainerStatuses) > 1 && len(pod.Status.ContainerStatuses) > 0 {
 			init := pod.Status.InitContainerStatuses[0].Ready && pod.Status.InitContainerStatuses[1].Ready
 			engine := pod.Status.ContainerStatuses[0]
 

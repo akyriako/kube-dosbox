@@ -159,24 +159,10 @@ func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaim(
 	}
 
 	if create {
-		response, err := http.Head(game.Spec.Url)
+		mib, err := calculatePersistenceVolumeClaimStorage(game)
 		if err != nil {
 			return nil, err
 		}
-
-		if response.StatusCode != http.StatusOK {
-			return nil, err
-		}
-
-		var storage metric.Bytes
-		length, err := strconv.Atoi(response.Header.Get("Content-Length"))
-		if err != nil {
-			storage = metric.Bytes(20 * 1024 * 1024)
-		}
-
-		extras := metric.Bytes(10 * 1024 * 1024)
-		storage = metric.Bytes(length)
-		mib := uint64(math.Round((storage.Mebibytes() * 0.1) + extras.Mebibytes() + storage.Mebibytes()))
 
 		pvc, err = assets.GetPersistentVolumeClaim(game.Namespace, game.Name, mib)
 		if err != nil {
@@ -225,24 +211,10 @@ func (r *GameReconciler) CreateOrUpdatePersistentVolumeClaimAssets(
 	}
 
 	if create {
-		response, err := http.Head(game.Spec.Url)
+		mib, err := calculatePersistenceVolumeClaimStorage(game)
 		if err != nil {
 			return nil, err
 		}
-
-		if response.StatusCode != http.StatusOK {
-			return nil, err
-		}
-
-		var storage metric.Bytes
-		length, err := strconv.Atoi(response.Header.Get("Content-Length"))
-		if err != nil {
-			storage = metric.Bytes(20 * 1024 * 1024)
-		}
-
-		extras := metric.Bytes(10 * 1024 * 1024)
-		storage = metric.Bytes(length)
-		mib := uint64(math.Round((storage.Mebibytes() * 0.1) + extras.Mebibytes() + storage.Mebibytes()))
 
 		pvc, err = assets.GetPersistentVolumeClaimAssets(game.Namespace, game.Name, mib)
 		if err != nil {
@@ -330,4 +302,27 @@ func (r *GameReconciler) CreateOrUpdateService(
 	}
 
 	return svc, nil
+}
+
+func calculatePersistenceVolumeClaimStorage(game *operatorv1alpha1.Game) (uint64, error) {
+	response, err := http.Head(game.Spec.Url)
+	if err != nil {
+		return 0, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return 0, err
+	}
+
+	var storage metric.Bytes
+	length, err := strconv.Atoi(response.Header.Get("Content-Length"))
+	if err != nil {
+		storage = metric.Bytes(20 * 1024 * 1024)
+	}
+
+	extras := metric.Bytes(10 * 1024 * 1024)
+	storage = metric.Bytes(length)
+	mib := uint64(math.Round((storage.Mebibytes() * 0.1) + extras.Mebibytes() + storage.Mebibytes()))
+
+	return mib, nil
 }
